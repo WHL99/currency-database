@@ -4,33 +4,41 @@ const app = express()
 const sqlite3 = require('sqlite3').verbose()
 const ExternalAPI = 'https://open.er-api.com/v6/latest'
 
-const db = new sqlite3.Database(
-    'currency.db',
-    sqlite3.OPEN_READWRITE,
-    (err) => {
-        if (err) {
-            return console.error(err.message);
-        }
-        console.log('currency.sqlite is connected!')
-    }
-)
+let db
 
-db.run(
-    `CREATE TABLE IF NOT EXISTS results (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    request_at TEXT NOT NULL,
-    rate_USD REAL NOT NULL,
-    rate_EUR REAL NOT NULL,
-    rate_GBP REAL NOT NULL,
-    rate_CNY REAL NOT NULL
-  )`,
-    (err) => {
-        if (err) {
-            return console.error(err.message)
-        }
-        console.log('Table "results" has been created or already exists.')
+const createDatabaseAndTable = () => {
+    try {
+        db = new sqlite3.Database(
+            'currency.db',
+            sqlite3.OPEN_READWRITE,
+            (err) => {
+                if (err) {
+                    throw new Error(err.message);
+                }
+                console.log('currency.db is connected!');
+            }
+        );
+        db.run(
+            `CREATE TABLE IF NOT EXISTS results (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        request_at TEXT NOT NULL,
+        rate_USD REAL NOT NULL,
+        rate_EUR REAL NOT NULL,
+        rate_GBP REAL NOT NULL,
+        rate_CNY REAL NOT NULL
+      )`,
+            (err) => {
+                if (err) {
+                    throw new Error(err.message);
+                }
+                console.log('Table "results" has been created or already exists.');
+            }
+        );
+    } catch (error) {
+        console.error(error.message);
     }
-);
+};
+
 
 const fetchExchangeRates = async () => {
     try {
@@ -86,6 +94,7 @@ const closeDB = (db) => {
 
 app.get('/', async (req, res) => {
     try {
+        createDatabaseAndTable()
         const exchangeRates = await fetchExchangeRates()
         await insertExchangeRatesAndTimeIntoDB(db, exchangeRates.rates)
         const retrievedRates = await retrieveExchangeRatesFromDB(db)
