@@ -9,7 +9,7 @@ Create a NodeJS project:
    - rate for USD
    - rate for EUR
    - rate for GBP
-   - rate for CNY
+   - rate for TWD
    
 ## Setup
 
