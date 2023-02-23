@@ -33,7 +33,6 @@ const createTable = (db) => {
 const fetchExchangeRates = async () => {
   return fetch(ExternalAPI)
     .then((res) => res.json())
-    .then((data) => data)
     .catch((err) => {
       console.error(err)
       throw new Error('Failed to fetch exchange rates')
@@ -80,8 +79,7 @@ app.get('/', async (req, res) => {
     createTable(db)
     const exchangeRates = await fetchExchangeRates()
     await insertExchangeRatesAndTimeIntoDB(db, exchangeRates.rates)
-    const retrievedRates = await retrieveExchangeRatesFromDB(db)
-    console.log(retrievedRates)
+    await retrieveExchangeRatesFromDB(db)
     await closeDB(db)
     res.json({ status: 200, success: true })
   } catch (err) {
